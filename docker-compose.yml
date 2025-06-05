@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: registerme_db
+    environment:
+      POSTGRES_DB: registerme2
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d registerme2"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: registerme_backend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/registerme2?schema=public
+      - PORT=3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      # Enable hot reload by mounting source code
+      - ./backend/src:/app/src:ro
+      - ./backend/prisma:/app/prisma:ro
+      # Prevent node_modules from being overwritten
+      - /app/node_modules
+      - /app/dist
+    restart: unless-stopped
+    command: sh -c "npx prisma migrate deploy && npm run dev"
+
+  # Frontend Vue App
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: registerme_frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:3000/api
+    depends_on:
+      - backend
+    volumes:
+      # Enable hot reload by mounting source code
+      - ./frontend/src:/app/src:ro
+      - ./frontend/public:/app/public:ro
+      # Prevent node_modules from being overwritten
+      - /app/node_modules
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local

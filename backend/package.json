@@ -1,0 +1,33 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "Api por register nicknames",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "prod": "npm run build && npm run start"
+  },
+  "keywords": [
+    "register",
+    "nicknames"
+  ],
+  "author": "jhon doe",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^6.8.2",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "zod": "^3.25.49"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.18",
+    "@types/express": "^5.0.2",
+    "@types/node": "^22.15.29",
+    "nodemon": "^3.1.10",
+    "prisma": "^6.8.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  }
+}
